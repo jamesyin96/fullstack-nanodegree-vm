@@ -5,7 +5,10 @@
 ## Quick Start:
 1. Clone the repository
 2. Launch the Vagrant VM, ssh into the VM
-3. Run the `tournament_test.py` in the VM
+3. Run `psql` in the VM to start PostgreSQL database
+4. Run `\i tournament.sql` to import sql file that create the database and table.
+5. After the database and tables are created, run `\q` to exit the database
+6. Run the `tournament_test.py` in the VM to test the `tournament.py`
 
 ## Basic Functionality
 

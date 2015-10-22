@@ -4,39 +4,47 @@
 #
 
 import psycopg2
+import contextlib
 
 
 def connect():
     """Connect to the PostgreSQL database.  Returns a database connection."""
     return psycopg2.connect("dbname=tournament")
 
+@contextlib.contextmanager
+def getCursor():
+    """Connect to the PostgreSQL database and return the cursor"""
+    conn = connect()
+    cur = conn.cursor()
+    try:
+        yield cur
+    except:
+        raise
+    else:
+        conn.commit()
+    finally:
+        cur.close()
+        conn.close()
+
 
 def deleteMatches():
     """Remove all the match records from the database."""
-    conn = connect()
-    cur = conn.cursor()
-    cur.execute("delete from matches")
-    conn.commit()
-    conn.close()
+    with getCursor() as cur:
+        cur.execute("delete from matches")
 
 
 def deletePlayers():
     """Remove all the player records from the database."""
-    conn = connect()
-    cur = conn.cursor()
-    cur.execute("delete from players")
-    conn.commit()
-    conn.close()
+    with getCursor() as cur:
+        cur.execute("delete from players")
 
 
 def countPlayers():
     """Returns the number of players currently registered."""
-    conn = connect()
-    cur = conn.cursor()
-    cur.execute("select count(id) from players")
-    num = cur.fetchone()
-    conn.close()
-    return num[0]
+    with getCursor() as cur:
+        cur.execute("select count(id) from players")
+        num = cur.fetchone()
+        return num[0]
 
 
 def registerPlayer(name):
@@ -48,12 +56,9 @@ def registerPlayer(name):
     Args:
       name: the player's full name (need not be unique).
     """
-    conn = connect()
-    cur = conn.cursor()
-    cur.execute("insert into players (name, score) values (%s, %s)",
-                (name, 0,))
-    conn.commit()
-    conn.close()
+    with getCursor() as cur:
+        cur.execute("insert into players (name, score) values (%s, %s)", 
+                    (name, 0,))
 
 
 def playerStandings():
@@ -70,15 +75,13 @@ def playerStandings():
         wins: the number of matches the player has won
         matches: the number of matches the player has played
     """
-    conn = connect()
-    cur = conn.cursor()
-    cur.execute("SELECT players.id, name, score, score+count(loser_id) \
+    with getCursor() as cur:
+        cur.execute("SELECT players.id, name, score, score+count(loser_id) \
                 FROM players left join matches \
                 on players.id = matches.loser_id \
                 group by players.id \
                 order by score desc")
-    game_result = cur.fetchall()
-    conn.close()
+        game_result = cur.fetchall()
     # build a dictionary that stores the id and its win score
     score_dic = {tup[0]: tup[2] for tup in game_result}
     # go through the result list.
@@ -124,16 +127,13 @@ def reportMatch(winner, loser):
       winner:  the id number of the player who won
       loser:  the id number of the player who lost
     """
-    conn = connect()
-    cur = conn.cursor()
-    cur.execute("INSERT INTO matches (winner_id, loser_id) \
-                VALUES (%s , %s)",
-                (winner, loser,))
-    cur.execute("UPDATE players SET score = score + 1 \
-                WHERE id = (%s)",
-                (winner,))
-    conn.commit()
-    conn.close()
+    with getCursor() as cur:
+        cur.execute("INSERT INTO matches (winner_id, loser_id) \
+                    VALUES (%s , %s)",
+                    (winner, loser,))
+        cur.execute("UPDATE players SET score = score + 1 \
+                    WHERE id = (%s)",
+                    (winner,))
 
 
 def swissPairings():
@@ -197,12 +197,11 @@ def getMatchDic():
         key: player id
         value: a list of player #id's opponents
     """
-    conn = connect()
-    cur = conn.cursor()
-    cur.execute("SELECT winner_id, loser_id FROM matches;")
-    match_results = cur.fetchall()
-    cur.execute("SELECT id FROM players;")
-    players_list = cur.fetchall()
+    with getCursor() as cur:
+        cur.execute("SELECT winner_id, loser_id FROM matches;")
+        match_results = cur.fetchall()
+        cur.execute("SELECT id FROM players;")
+        players_list = cur.fetchall()
     # build a dictionary to track the opponents of each player
     matchDic = {id[0]: [] for id in players_list}
     for row in match_results:
