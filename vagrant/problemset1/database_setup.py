@@ -10,27 +10,27 @@ Base = declarative_base()
 
 
 class Shelter(Base):
-    __tablename__ = 'Shelter'
+    __tablename__ = 'shelter'
 
     id = Column(Integer, primary_key=True)
     name = Column(String(80), nullable=False)
-    address = Column(String(250), nullable=True)
-    city = Column(String(50), nullable=True)
-    state = Column(String(2), nullable=True)
-    email = Column(String(80), nullable=True)
+    address = Column(String(250))
+    city = Column(String(50))
+    state = Column(String(20))
+    website = Column(String(250))
 
 
 class Puppy(Base):
-    __tablename__ = 'Puppy'
+    __tablename__ = 'puppy'
 
     id = Column(Integer, primary_key=True)
-    name = Column(String(80), nullable=False)
-    date_of_birth = Column(Date, nullable=False)
-    breed = Column(String(80), nullable=True)
+    name = Column(String(80))
+    date_of_birth = Column(Date)
+    breed = Column(String(80))
     gender = Column(String(6), nullable=False)
-    weight = Column(Float, nullable=True)
-    shelter_id = Column(Integer, ForeignKey('Shelter.id'))
-    Shelter = relationship(Shelter)
+    weight = Column(Float)
+    shelter_id = Column(Integer, ForeignKey('shelter.id'))
+    shelter = relationship(Shelter)
 
 
 engine = create_engine('sqlite:///shelterpuppy.db')
