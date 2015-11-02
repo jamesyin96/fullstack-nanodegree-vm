@@ -118,7 +118,8 @@ def deleteMenuItem(restaurant_id, menu_id):
 
 @app.route('/restaurants/JSON')
 def restaurantJSON():
-    return "restaurant info JSON"
+    restaurants = session.query(Restaurant).all()
+    return jsonify(Restaurant=[i.serialize for i in restaurants])
 
 
 @app.route('/restaurant/<int:restaurant_id>/menu/JSON')
