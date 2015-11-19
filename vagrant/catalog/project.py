@@ -276,7 +276,7 @@ def catalogJSON():
 @app.route('/catalog')
 def showCategories():
     categories = session.query(Category)
-    return render_template('categories.html', categories=categories)
+    return render_template('index.html', categories=categories)
 
 
 # show all items belonging to one category
