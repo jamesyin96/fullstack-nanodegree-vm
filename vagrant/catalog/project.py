@@ -1,7 +1,7 @@
 from flask import (Flask, render_template, request, redirect, jsonify, url_for,
                    flash)
 # import orm
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, desc
 from sqlalchemy.orm import sessionmaker
 from database_setup import Base, Category, Item, User
 # import in step 3
@@ -264,52 +264,6 @@ def disconnect():
         redirect(url_for('showRestaurants'))
 
 
-# JSON APIs to view catalog Information
-@app.route('/catalog.json')
-def catalogJSON():
-    categories = session.query(Category).all()
-    return jsonify(categories=[r.serialize for r in categories])
-
-
-# Show all categories and latest added items
-@app.route('/')
-@app.route('/catalog')
-def showCategories():
-    categories = session.query(Category)
-    return render_template('index.html', categories=categories)
-
-
-# show all items belonging to one category
-@app.route('/catalog/<string:category_name>')
-@app.route('/catalog/<string:category_name>/items')
-def showCategoryItems(category_name):
-    return 'show category items'
-
-
-# show the detail of one item
-@app.route('/catalog/<string:category_name>/<string:item_name>')
-def showItemDetail(category_name, item_name):
-    return 'show item detail'
-
-
-# add a new item
-@app.route('/catalog/newItem', methods=['GET', 'POST'])
-def newItem():
-    return 'add new item'
-
-
-# edit an item
-@app.route('/catalog/<string:item_name>/edit', methods=['GET', 'POST'])
-def editItem(item_name):
-    return 'edit an item'
-
-
-# delete an item
-@app.route('/catalog/<string:item_name>/delete', methods=['GET', 'POST'])
-def deleteItem(item_name):
-    return 'delete an item'
-
-
 # User Helper Functions
 def createUser(login_session):
     newUser = User(name=login_session['username'], email=login_session[
@@ -332,6 +286,84 @@ def getUserID(email):
         return user.id
     except:
         return None
+
+
+# JSON APIs to view catalog Information
+@app.route('/catalog.json')
+def catalogJSON():
+    categories = session.query(Category).all()
+    return jsonify(categories=[r.serialize for r in categories])
+
+
+# Show all categories and latest added items
+@app.route('/')
+@app.route('/catalog')
+def showCategories():
+    categories = session.query(Category).all()
+    latestitems = session.query(Item).order_by(desc(Item.id)).limit(10)
+    return render_template('index.html', categories=categories, latestitems=latestitems)
+
+
+# show all items belonging to one category
+@app.route('/catalog/<string:category_name>')
+@app.route('/catalog/<string:category_name>/items')
+def showCategoryItems(category_name):
+    categories = session.query(Category).all()
+    items = session.query(Item).filter_by(category_name=category_name).all()
+    return render_template('categoryitems.html', category_name=category_name, categories=categories, items=items)
+
+
+# show the detail of one item
+@app.route('/catalog/<string:category_name>/<string:item_name>')
+def showItemDetail(category_name, item_name):
+    item = session.query(Item).filter_by(name=item_name).first()
+    return render_template('itemdetail.html', item=item)
+
+
+# add a new item
+@app.route('/catalog/newItem/', methods=['GET', 'POST'])
+def newItem():
+    if request.method == 'POST':
+        newItem = Item(name=request.form['name'],
+                       description=request.form['description'],
+                       category_name=request.form['category'])
+        session.add(newItem)
+        session.commit()
+        flash('New Item %s Successfully Added' % newItem.name)
+        return redirect(url_for('showCategories'))
+    else:
+        categories = session.query(Category).all()
+        return render_template('newitem.html', categories=categories)
+
+
+# edit an item
+@app.route('/catalog/<string:item_name>/edit', methods=['GET', 'POST'])
+def editItem(item_name):
+    editItem = session.query(Item).filter_by(name=item_name).first()
+    if request.method == 'POST':
+        editItem.name = request.form['name']
+        editItem.description = request.form['description']
+        editItem.category_name = request.form['category']
+        session.add(editItem)
+        session.commit()
+        flash('Item %s Successfully Edited' % editItem.name)
+        return redirect(url_for('showCategories'))
+    else:
+        categories = session.query(Category).all()
+        return render_template('edititem.html', editItem=editItem, categories=categories)
+
+
+# delete an item
+@app.route('/catalog/<string:item_name>/delete', methods=['GET', 'POST'])
+def deleteItem(item_name):
+    deleteItem = session.query(Item).filter_by(name=item_name).first()
+    if request.method == 'POST':
+        session.delete(deleteItem)
+        session.commit()
+        flash('Item %s Successfully Deleted' % deleteItem.name)
+        return redirect(url_for('showCategories'))
+    else:
+        return render_template('deleteitem.html', deleteItem=deleteItem)
 
 
 if __name__ == '__main__':

@@ -31,12 +31,12 @@ session.add(Category1)
 session.commit()
 
 # Menu for item1
-Item1 = Item(user_id=1, name="British Soccer", category=Category1)
+Item1 = Item(user_id=1, name="British Soccer", category=Category1, description="Challenger Sports British Soccer Camps is the most popular soccer camp in the country. Over a thousand Challenger coaches each year have helped the company develop one of the most innovative approaches to coaching youth soccer in the US.")
 session.add(Item1)
 session.commit()
 
 # menu for item2
-Item2 = Item(user_id=1, name="American Soccer", category=Category1)
+Item2 = Item(user_id=1, name="American Soccer", category=Category1, description="The American Soccer League (ASL) is an American soccer league that began play in August 2014.[1] The league footprint is initially in the northeastern United States, with expansion to other areas planned for the future. ASL players are paid, making it different from the NPSL or PDL models in which college-eligible players can compete.")
 session.add(Item2)
 session.commit()
 
@@ -53,12 +53,12 @@ session.add(Category2)
 session.commit()
 
 # Menu for item1
-Item3 = Item(user_id=2, name="Goggles", category=Category2)
+Item3 = Item(user_id=2, name="Goggles", category=Category2, description="Goggles are one of the most important pieces of equipment you can purchase; they are just as important as your jacket and pants. Any skier or snowboarder can tell you that not being able to see ruins a day as fast as poor fitting boots or a bad chili dog. All ski and snowboard goggles will offer some basic protection from wind and cold, but beyond the basics there are some key features to consider: lens type, lens color/tint, interchangeable lenses, frame size and fit.")
 session.add(Item3)
 session.commit()
 
 # menu for item2
-Item4 = Item(user_id=2, name="Snowboard", category=Category2)
+Item4 = Item(user_id=2, name="Snowboard", category=Category2, description="Snowboard is a recreational activity and olympic sport that involves descending a slope that is covered with snow while standing on a snowboard attached to a rider's feet. The development of snowboarding was inspired by skateboarding, sledding, surfing and skiing. It was developed in the United States in the 1960s and became a Winter Olympic Sport in 1998. Its popularity (as measured by equipment sales) peaked in 2007 and has been in a decline since.[1]")
 session.add(Item4)
 session.commit()
 
