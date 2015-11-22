@@ -304,7 +304,14 @@ def catalogJSON():
 def showCategories():
     categories = session.query(Category).all()
     latestitems = session.query(Item).order_by(desc(Item.id)).limit(10)
-    return render_template('index.html', categories=categories, latestitems=latestitems)
+    if 'username' not in login_session:
+        return render_template('index_public.html',
+                               categories=categories,
+                               latestitems=latestitems)
+    else:
+        return render_template('index.html',
+                               categories=categories,
+                               latestitems=latestitems)
 
 
 # show all items belonging to one category
@@ -313,6 +320,8 @@ def showCategories():
 def showCategoryItems(category_name):
     categories = session.query(Category).all()
     items = session.query(Item).filter_by(category_name=category_name).all()
+    if len(items) == 0:
+        return redirect(url_for('showCategories'))
     return render_template('categoryitems.html', category_name=category_name, categories=categories, items=items)
 
 
@@ -320,16 +329,25 @@ def showCategoryItems(category_name):
 @app.route('/catalog/<string:category_name>/<string:item_name>')
 def showItemDetail(category_name, item_name):
     item = session.query(Item).filter_by(name=item_name).first()
-    return render_template('itemdetail.html', item=item)
+    creator = item.user_id
+    if (('username' not in login_session) or
+       (creator != login_session['user_id'])):
+        return render_template('itemdetail_public.html', item=item)
+    else:
+        return render_template('itemdetail.html', item=item)
 
 
 # add a new item
 @app.route('/catalog/newItem/', methods=['GET', 'POST'])
 def newItem():
+    if 'username' not in login_session:
+        return redirect('/login')
+
     if request.method == 'POST':
         newItem = Item(name=request.form['name'],
                        description=request.form['description'],
-                       category_name=request.form['category'])
+                       category_name=request.form['category'],
+                       user_id=login_session['user_id'])
         session.add(newItem)
         session.commit()
         flash('New Item %s Successfully Added' % newItem.name)
@@ -342,7 +360,17 @@ def newItem():
 # edit an item
 @app.route('/catalog/<string:item_name>/edit', methods=['GET', 'POST'])
 def editItem(item_name):
+    if 'username' not in login_session:
+        return redirect('/login')
+
     editItem = session.query(Item).filter_by(name=item_name).first()
+
+    if login_session['user_id'] != editItem.user_id:
+        return "<script>function myFunction() \
+                {alert('You are not authorized to edit this item.');\
+                window.location.href='/catalog';}\
+                </script><body onload='myFunction()'>"
+
     if request.method == 'POST':
         editItem.name = request.form['name']
         editItem.description = request.form['description']
@@ -359,7 +387,17 @@ def editItem(item_name):
 # delete an item
 @app.route('/catalog/<string:item_name>/delete', methods=['GET', 'POST'])
 def deleteItem(item_name):
+    if 'username' not in login_session:
+        return redirect('/login')
+
     deleteItem = session.query(Item).filter_by(name=item_name).first()
+
+    if login_session['user_id'] != deleteItem.user_id:
+        return "<script>function myFunction() \
+                {alert('You are not authorized to delete this item.');\
+                window.location.href='/catalog';}\
+                </script><body onload='myFunction()'>"
+
     if request.method == 'POST':
         session.delete(deleteItem)
         session.commit()
