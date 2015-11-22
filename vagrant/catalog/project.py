@@ -10,12 +10,13 @@ import random, string
 # import in step 5
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.client import FlowExchangeError
+from oauth2client.client import AccessTokenCredentials
 import httplib2, json
 from flask import make_response
 import requests
 
 app = Flask(__name__)
-CLIENT_ID = json.loads(open('client_secrets.json', 'r').
+CLIENT_ID = json.loads(open('g_client_secrets.json', 'r').
                        read())['web']['client_id']
 
 # Connect to Database and create database session
@@ -38,6 +39,7 @@ def showLogin():
 
 @app.route('/gconnect', methods=['POST'])
 def gconnect():
+    print login_session
     if request.args.get('state') != login_session['state']:
         response = make_response(json.dumps('Invalid state parameter.'), 401)
         response.headers['Content-Type'] = 'application/json'
@@ -47,7 +49,7 @@ def gconnect():
 
     try:
         # Upgrade the authorization code into a credentials object
-        oauth_flow = flow_from_clientsecrets('client_secrets.json', scope='')
+        oauth_flow = flow_from_clientsecrets('g_client_secrets.json', scope='')
         oauth_flow.redirect_uri = 'postmessage'
         credentials = oauth_flow.step2_exchange(code)
     except FlowExchangeError:
@@ -94,7 +96,8 @@ def gconnect():
         return response
 
     # Store the access token in the session for later use.
-    login_session['credentials'] = credentials
+    login_session['credentials'] = credentials.access_token
+    credentials = AccessTokenCredentials(login_session['credentials'], 'user-agent-value')
     login_session['gplus_id'] = gplus_id
 
     # Get user info
@@ -133,7 +136,7 @@ def gconnect():
 @app.route('/gdisconnect')
 def gdisconnect():
     # Only disconnect a connected user.
-    credentials = login_session.get('credentials')
+    credentials = AccessTokenCredentials(login_session['credentials'], 'user-agent-value')
     if credentials is None:
         response = make_response(
             json.dumps('Current user not connected.'), 401)
@@ -258,7 +261,7 @@ def disconnect():
         del login_session['user_id']
         del login_session['provider']
         flash("You have successfull been loged out.")
-        return redirect(url_for('showRestaurants'))
+        return redirect(url_for('showCategories'))
     else:
         flash("You are not logged in yet")
         redirect(url_for('showRestaurants'))

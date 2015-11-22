@@ -3,7 +3,7 @@
 <head>
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
     <script src="//apis.google.com/js/platform.js?onload=start"></script>
-
+    <link href="../static/jumbotron-narrow.css" rel="stylesheet">
 </head>
 <body>
     <!-- Goole sign in -->
@@ -11,7 +11,7 @@
         <button>
             <span class="g-signin"
             data-scope="openid email"
-            data-clientid="330408128849-caeov20ml2e47ru7jtttq0qo90trusj2.apps.googleusercontent.com"
+            data-clientid="881807120747-t54el6k5kr1ubjkjacug05n5rtmu4dlr.apps.googleusercontent.com"
             data-redirecturi="postmessage"
             data-accesstype="offline"
             data-cookiepolicy="single_host_origin"
@@ -46,8 +46,8 @@
                     if(result){
                         $('#result').html('Login Successfully!<br/>'+ result + '<br/>Redirecting...')
                         setTimeout(function(){
-                            window.location.href='/restaurant';
-                        }, 4000);
+                            window.location.href='/catalog';
+                        }, 3000);
 
                     }else if(authResult['error']){
                         console.log('There was an error: ' + authResult['error']);
@@ -63,7 +63,7 @@
     <script>
         window.fbAsyncInit = function() {
             FB.init({
-                appId      : '1500585413574594',
+                appId      : '1663921313823386',
                 cookie     : true,
                 xfbml      : true,
                 version    : 'v2.5'
@@ -95,7 +95,7 @@
                         if(result){
                             $('#result').html('Login Successful!<br/>' + result + '<br/>Redirecting...')
                             setTimeout(function(){
-                                window.location.href = "/restaurant";
+                                window.location.href = "/catalog";
                             }, 4000);
                         }else{
                             $('#result').html('Failed to make a server-side call.');
