@@ -14,8 +14,17 @@ from oauth2client.client import AccessTokenCredentials
 import httplib2, json
 from flask import make_response
 import requests
+import myform
+import os
+from werkzeug import secure_filename
+
 
 app = Flask(__name__)
+# uploads folder should exists in the server
+# app config
+UPLOAD_FOLDER = os.path.dirname(__file__)
+app.config['UPLOAD_FOLDER'] = os.path.join(UPLOAD_FOLDER, 'uploads')
+
 CLIENT_ID = json.loads(open('g_client_secrets.json', 'r').
                        read())['web']['client_id']
 
@@ -344,17 +353,30 @@ def newItem():
         return redirect('/login')
 
     if request.method == 'POST':
-        newItem = Item(name=request.form['name'],
-                       description=request.form['description'],
-                       category_name=request.form['category'],
-                       user_id=login_session['user_id'])
+        file = request.files['upload']
+        if file:
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            newItem = Item(name=request.form['name'],
+                           description=request.form['description'],
+                           category_name=request.form['category'],
+                           user_id=login_session['user_id']，
+                           pic_name=filename)
+        else:
+            newItem = Item(name=request.form['name'],
+                           description=request.form['description'],
+                           category_name=request.form['category'],
+                           user_id=login_session['user_id'])
         session.add(newItem)
         session.commit()
         flash('New Item %s Successfully Added' % newItem.name)
         return redirect(url_for('showCategories'))
     else:
         categories = session.query(Category).all()
-        return render_template('newitem.html', categories=categories)
+        form = myform.MyForm()
+        form.category.choices = [(g.name, g.name) for g in categories]
+        # return render_template('newitem.html', categories=categories)
+        return render_template('newitem1.html', form=form)
 
 
 # edit an item
