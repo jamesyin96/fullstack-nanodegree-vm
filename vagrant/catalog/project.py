@@ -23,7 +23,7 @@ app = Flask(__name__)
 # uploads folder should exists in the server
 # app config
 UPLOAD_FOLDER = os.path.dirname(__file__)
-app.config['UPLOAD_FOLDER'] = os.path.join(UPLOAD_FOLDER, 'uploads')
+app.config['UPLOAD_FOLDER'] = os.path.join(UPLOAD_FOLDER, './static/uploads')
 
 CLIENT_ID = json.loads(open('g_client_secrets.json', 'r').
                        read())['web']['client_id']
@@ -325,7 +325,6 @@ def showCategories():
 
 # show all items belonging to one category
 @app.route('/catalog/<string:category_name>')
-@app.route('/catalog/<string:category_name>/items')
 def showCategoryItems(category_name):
     categories = session.query(Category).all()
     items = session.query(Item).filter_by(category_name=category_name).all()
@@ -339,6 +338,8 @@ def showCategoryItems(category_name):
 def showItemDetail(category_name, item_name):
     item = session.query(Item).filter_by(name=item_name).first()
     creator = item.user_id
+    if item.pic_name is None:
+        item.pic_name = "noItemImage.gif"
     if (('username' not in login_session) or
        (creator != login_session['user_id'])):
         return render_template('itemdetail_public.html', item=item)
@@ -356,11 +357,12 @@ def newItem():
         file = request.files['upload']
         if file:
             filename = secure_filename(file.filename)
+            filename = str(login_session['user_id']) + "_" + filename
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             newItem = Item(name=request.form['name'],
                            description=request.form['description'],
                            category_name=request.form['category'],
-                           user_id=login_session['user_id']，
+                           user_id=login_session['user_id'],
                            pic_name=filename)
         else:
             newItem = Item(name=request.form['name'],
@@ -376,7 +378,7 @@ def newItem():
         form = myform.MyForm()
         form.category.choices = [(g.name, g.name) for g in categories]
         # return render_template('newitem.html', categories=categories)
-        return render_template('newitem1.html', form=form)
+        return render_template('newitem.html', form=form)
 
 
 # edit an item
@@ -394,16 +396,31 @@ def editItem(item_name):
                 </script><body onload='myFunction()'>"
 
     if request.method == 'POST':
-        editItem.name = request.form['name']
-        editItem.description = request.form['description']
-        editItem.category_name = request.form['category']
+        file = request.files['upload']
+        if file:
+            editItem.name = request.form['name']
+            editItem.description = request.form['description']
+            editItem.category_name = request.form['category']
+            if editItem.pic_name:
+                pic_path = './static/uploads/' + editItem.pic_name
+                os.remove(pic_path)
+            filename = secure_filename(file.filename)
+            filename = login_session['user_id'] + "_" + filename
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            editItem.pic_name = filename
+        else:
+            editItem.name = request.form['name']
+            editItem.description = request.form['description']
+            editItem.category_name = request.form['category']
         session.add(editItem)
         session.commit()
         flash('Item %s Successfully Edited' % editItem.name)
         return redirect(url_for('showCategories'))
     else:
         categories = session.query(Category).all()
-        return render_template('edititem.html', editItem=editItem, categories=categories)
+        form = myform.MyForm()
+        form.category.choices = [(g.name, g.name) for g in categories]
+        return render_template('edititem.html', editItem=editItem, form=form)
 
 
 # delete an item
@@ -421,6 +438,10 @@ def deleteItem(item_name):
                 </script><body onload='myFunction()'>"
 
     if request.method == 'POST':
+        item_pic = deleteItem.pic_name
+        if item_pic:
+            pic_path = './static/uploads/' + item_pic
+            os.remove(pic_path)
         session.delete(deleteItem)
         session.commit()
         flash('Item %s Successfully Deleted' % deleteItem.name)
