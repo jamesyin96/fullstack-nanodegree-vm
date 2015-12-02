@@ -26,7 +26,7 @@ session.add(User1)
 session.commit()
 
 # Create a category1
-Category1 = Category(name="Soccer", user_id=1)
+Category1 = Category(name="Soccer")
 session.add(Category1)
 session.commit()
 
@@ -48,7 +48,7 @@ session.add(User2)
 session.commit()
 
 # Create a category2
-Category2 = Category(name="Snowboarding", user_id=2)
+Category2 = Category(name="Snowboarding")
 session.add(Category2)
 session.commit()
 

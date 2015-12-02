@@ -14,7 +14,7 @@ from oauth2client.client import AccessTokenCredentials
 import httplib2, json
 from flask import make_response
 import requests
-import myform
+from myform import MyForm
 import os
 from werkzeug import secure_filename
 
@@ -304,7 +304,7 @@ def getUserID(email):
 @app.route('/catalog.json')
 def catalogJSON():
     categories = session.query(Category).all()
-    return jsonify(categories=[r.serialize for r in categories])
+    return jsonify(Category=[c.serialize for c in categories])
 
 
 # Show all categories and latest added items
@@ -375,7 +375,7 @@ def newItem():
         return redirect(url_for('showCategories'))
     else:
         categories = session.query(Category).all()
-        form = myform.MyForm()
+        form = MyForm()
         form.category.choices = [(g.name, g.name) for g in categories]
         # return render_template('newitem.html', categories=categories)
         return render_template('newitem.html', form=form)
@@ -418,8 +418,11 @@ def editItem(item_name):
         return redirect(url_for('showCategories'))
     else:
         categories = session.query(Category).all()
-        form = myform.MyForm()
+        form = MyForm()
         form.category.choices = [(g.name, g.name) for g in categories]
+        form.name.data = editItem.name
+        form.description.data = editItem.description
+        form.category.data = editItem.category_name
         return render_template('edititem.html', editItem=editItem, form=form)
 
 

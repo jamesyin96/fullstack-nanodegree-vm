@@ -1,6 +1,6 @@
 from sqlalchemy import Column, ForeignKey, Integer, String, Text
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 from sqlalchemy import create_engine
 
 Base = declarative_base()
@@ -20,16 +20,15 @@ class Category(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(80), nullable=False)
-    user_id = Column(Integer, ForeignKey('user.id'))
-    user = relationship(User)
+    items = relationship("Item", cascade="all, delete-orphan")
 
     @property
     def serialize(self):
         """Return object data in easily serializeable format"""
         return {
-               'name': self.name,
                'id': self.id,
-               'user_id': self.user_id
+               'name': self.name,
+               'items': [i.serialize for i in self.items]
         }
 
 
@@ -49,9 +48,10 @@ class Item(Base):
     def serialize(self):
         """Return object data in easily serializeable format"""
         return {
-               'name': self.name,
-               'id': self.id,
                'category_name': self.category_name,
+               'description': self.description,
+               'title': self.name,
+               'id': self.id,
                'user_id': self.user_id
         }
 
