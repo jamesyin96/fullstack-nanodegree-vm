@@ -1,13 +1,13 @@
 ## Requirements
 1. latest Python 2.*
 2. vagrant vm correctly installed
-3, Flask installed
-4, Flask-WTF installed
-5, Flask-Seasurf installed
-6, you have created your own web app in google and facebook and obtained Id and secret
-7, make sure your callback url is http://localhost:8000
-8, download your google app secret json and rename it as "g_client_secrets.json"
-9, make your own facebook client secrets file follow the example_fb_client_secrets.json and rename it as fb_client_secrets.json
+3. Flask installed
+4. Flask-WTF installed
+5. Flask-Seasurf installed
+6. you have created your own web app in google and facebook and obtained Id and secret
+7. make sure your callback url is http://localhost:8000
+8. download your google app secret json and rename it as "g_client_secrets.json"
+9. make your own facebook client secrets file follow the example_fb_client_secrets.json and rename it as fb_client_secrets.json
 
 ## Quick Start:
 1. Clone the repository
