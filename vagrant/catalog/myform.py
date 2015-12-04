@@ -9,4 +9,5 @@ class MyForm(Form):
     description = TextAreaField('description', validators=[DataRequired()])
     category = SelectField('category')
     upload = FileField('image',
-                       validators=[FileAllowed(['jpg', 'png'], 'Images only!')])
+                       validators=[FileAllowed(['jpg', 'png'],
+                                   'Images only!')])

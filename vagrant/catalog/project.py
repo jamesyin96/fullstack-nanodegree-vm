@@ -6,12 +6,14 @@ from sqlalchemy.orm import sessionmaker
 from database_setup import Base, Category, Item, User
 # import in step 3
 from flask import session as login_session
-import random, string
+import random
+import string
 # import in step 5
 from oauth2client.client import flow_from_clientsecrets
 from oauth2client.client import FlowExchangeError
 from oauth2client.client import AccessTokenCredentials
-import httplib2, json
+import httplib2
+import json
 from flask import make_response
 import requests
 from myform import MyForm
@@ -336,8 +338,6 @@ def showCategories():
 def showCategoryItems(category_name):
     categories = session.query(Category).all()
     items = session.query(Item).filter_by(category_name=category_name).all()
-    if len(items) == 0:
-        return redirect(url_for('showCategories'))
     return render_template('categoryitems.html',
                            category_name=category_name,
                            categories=categories,
