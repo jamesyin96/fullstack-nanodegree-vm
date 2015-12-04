@@ -17,9 +17,11 @@ import requests
 from myform import MyForm
 import os
 from werkzeug import secure_filename
+from flask.ext.seasurf import SeaSurf
 
 
 app = Flask(__name__)
+csrf = SeaSurf(app)
 # uploads folder should exists in the server
 # app config
 UPLOAD_FOLDER = os.path.dirname(__file__)
@@ -46,6 +48,7 @@ def showLogin():
     return render_template('login.html', STATE=state)
 
 
+@csrf.exempt
 @app.route('/gconnect', methods=['POST'])
 def gconnect():
     print login_session
@@ -106,7 +109,8 @@ def gconnect():
 
     # Store the access token in the session for later use.
     login_session['credentials'] = credentials.access_token
-    credentials = AccessTokenCredentials(login_session['credentials'], 'user-agent-value')
+    credentials = AccessTokenCredentials(login_session['credentials'],
+                                         'user-agent-value')
     login_session['gplus_id'] = gplus_id
 
     # Get user info
@@ -142,10 +146,12 @@ def gconnect():
     return output
 
 
+@csrf.exempt
 @app.route('/gdisconnect')
 def gdisconnect():
     # Only disconnect a connected user.
-    credentials = AccessTokenCredentials(login_session['credentials'], 'user-agent-value')
+    credentials = AccessTokenCredentials(login_session['credentials'],
+                                         'user-agent-value')
     if credentials is None:
         response = make_response(
             json.dumps('Current user not connected.'), 401)
@@ -169,6 +175,7 @@ def gdisconnect():
 
 
 # login with facebook
+@csrf.exempt
 @app.route('/fbconnect', methods=['POST'])
 def fbconnect():
     if request.args.get('state') != login_session['state']:
@@ -241,6 +248,7 @@ def fbconnect():
 
 
 # facebook logout function
+@csrf.exempt
 @app.route('/fbdisconnect')
 def fbdisconnect():
     facebook_id = login_session['facebook_id']
@@ -330,7 +338,10 @@ def showCategoryItems(category_name):
     items = session.query(Item).filter_by(category_name=category_name).all()
     if len(items) == 0:
         return redirect(url_for('showCategories'))
-    return render_template('categoryitems.html', category_name=category_name, categories=categories, items=items)
+    return render_template('categoryitems.html',
+                           category_name=category_name,
+                           categories=categories,
+                           items=items)
 
 
 # show the detail of one item
