@@ -32,6 +32,9 @@
 ##### `Json API to access all categories and its items information`: 
 * A Json API is provided to access all categories and its items information. the url for it is: http://localhost:8000/catalog.json
 
+##### `XML API to access all categories and its items information`: 
+* A XML API is provided to access all categories and its items information. the url for it is: http://localhost:8000/catalog.xml
+
 ## Enhancements
 1. Allow user to add item image
 2. Provide csrf protection in the item add, edit and delete page

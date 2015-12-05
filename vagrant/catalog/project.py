@@ -20,6 +20,7 @@ from myform import MyForm
 import os
 from werkzeug import secure_filename
 from flask.ext.seasurf import SeaSurf
+from dicttoxml import dicttoxml
 
 
 app = Flask(__name__)
@@ -310,11 +311,21 @@ def getUserID(email):
         return None
 
 
-# JSON APIs to view catalog Information
+# JSON API to view catalog Information
 @app.route('/catalog.json')
 def catalogJSON():
     categories = session.query(Category).all()
     return jsonify(Category=[c.serialize for c in categories])
+
+
+# XML API to view catalog information
+@app.route('/catalog.xml')
+def catalogXML():
+    categories = session.query(Category).all()
+    dic = {'Category': ''}
+    dic['Category'] = [c.serialize for c in categories]
+    xml = dicttoxml(dic)
+    return app.response_class(xml, mimetype='application/xml')
 
 
 # Show all categories and latest added items
