@@ -43,6 +43,9 @@ session = DBSession()
 
 @app.route('/login')
 def showLogin():
+    """
+    This login function creates a state string that can validate request source
+    """
     # the state is a verification code that used between client and server
     # so server can be sure that the client is making request not others
     state = ''.join(random.choice(string.ascii_uppercase +
@@ -54,6 +57,9 @@ def showLogin():
 @csrf.exempt
 @app.route('/gconnect', methods=['POST'])
 def gconnect():
+    """
+    Function for Google account login
+    """
     print login_session
     if request.args.get('state') != login_session['state']:
         response = make_response(json.dumps('Invalid state parameter.'), 401)
@@ -152,6 +158,9 @@ def gconnect():
 @csrf.exempt
 @app.route('/gdisconnect')
 def gdisconnect():
+    """
+    This function disconnect Google account login
+    """
     # Only disconnect a connected user.
     credentials = AccessTokenCredentials(login_session['credentials'],
                                          'user-agent-value')
@@ -177,10 +186,12 @@ def gdisconnect():
         return response
 
 
-# login with facebook
 @csrf.exempt
 @app.route('/fbconnect', methods=['POST'])
 def fbconnect():
+    """
+    Function for Facebook account login
+    """
     if request.args.get('state') != login_session['state']:
         response = make_response(json.dumps('Invalid state parameter.'), 401)
         response.headers['Content-Type'] = 'application/json'
@@ -250,10 +261,12 @@ def fbconnect():
     return output
 
 
-# facebook logout function
 @csrf.exempt
 @app.route('/fbdisconnect')
 def fbdisconnect():
+    """
+    Function diconnect Facebook login
+    """
     facebook_id = login_session['facebook_id']
     access_token = login_session['access_token']
     url = 'https://graph.facebook.com/%s/\
@@ -263,9 +276,12 @@ def fbdisconnect():
     return 'You have been loged out'
 
 
-# a general logout function
 @app.route('/disconnect')
 def disconnect():
+    """
+    The general function that determines login type- Google or Facebook,
+    then call corresponding disconnect function and clear the session data
+    """
     if 'provider' in login_session:
         if login_session['provider'] == 'google':
             gdisconnect()
@@ -287,8 +303,11 @@ def disconnect():
         redirect(url_for('showRestaurants'))
 
 
-# User Helper Functions
 def createUser(login_session):
+    """
+    Helper function that can create user record based on the user
+    login session info
+    """
     newUser = User(name=login_session['username'], email=login_session[
                    'email'], picture=login_session['picture'])
     session.add(newUser)
@@ -299,11 +318,17 @@ def createUser(login_session):
 
 
 def getUserInfo(user_id):
+    """
+    Fetch the user from database according to user id
+    """
     user = session.query(User).filter_by(id=user_id).one()
     return user
 
 
 def getUserID(email):
+    """
+    Get the user id according to user email
+    """
     try:
         user = session.query(User).filter_by(email=email).one()
         return user.id
@@ -311,16 +336,20 @@ def getUserID(email):
         return None
 
 
-# JSON API to view catalog Information
 @app.route('/catalog.json')
 def catalogJSON():
+    """
+    JSON API to view catalog Information
+    """
     categories = session.query(Category).all()
     return jsonify(Category=[c.serialize for c in categories])
 
 
-# XML API to view catalog information
 @app.route('/catalog.xml')
 def catalogXML():
+    """
+    XML API to view catalog information
+    """
     categories = session.query(Category).all()
     dic = {'Category': ''}
     dic['Category'] = [c.serialize for c in categories]
@@ -328,10 +357,12 @@ def catalogXML():
     return app.response_class(xml, mimetype='application/xml')
 
 
-# Show all categories and latest added items
 @app.route('/')
 @app.route('/catalog')
 def showCategories():
+    """
+    Show all categories and latest added items
+    """
     categories = session.query(Category).all()
     latestitems = session.query(Item).order_by(desc(Item.id)).limit(10)
     if 'username' not in login_session:
@@ -344,9 +375,11 @@ def showCategories():
                                latestitems=latestitems)
 
 
-# show all items belonging to one category
 @app.route('/catalog/<string:category_name>')
 def showCategoryItems(category_name):
+    """
+    show all items belonging to one category
+    """
     categories = session.query(Category).all()
     items = session.query(Item).filter_by(category_name=category_name).all()
     return render_template('categoryitems.html',
@@ -355,9 +388,11 @@ def showCategoryItems(category_name):
                            items=items)
 
 
-# show the detail of one item
 @app.route('/catalog/<string:category_name>/<string:item_name>')
 def showItemDetail(category_name, item_name):
+    """
+    show the detail of one item
+    """
     item = session.query(Item).filter_by(name=item_name).first()
     creator = item.user_id
     if item.pic_name is None:
@@ -369,9 +404,11 @@ def showItemDetail(category_name, item_name):
         return render_template('itemdetail.html', item=item)
 
 
-# add a new item
 @app.route('/catalog/newItem/', methods=['GET', 'POST'])
 def newItem():
+    """
+    add a new item
+    """
     if 'username' not in login_session:
         return redirect('/login')
 
@@ -403,9 +440,11 @@ def newItem():
         return render_template('newitem.html', form=form)
 
 
-# edit an item
 @app.route('/catalog/<string:item_name>/edit', methods=['GET', 'POST'])
 def editItem(item_name):
+    """
+    edit an item
+    """
     if 'username' not in login_session:
         return redirect('/login')
 
@@ -427,7 +466,7 @@ def editItem(item_name):
                 pic_path = './static/uploads/' + editItem.pic_name
                 os.remove(pic_path)
             filename = secure_filename(file.filename)
-            filename = login_session['user_id'] + "_" + filename
+            filename = str(login_session['user_id']) + "_" + filename
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             editItem.pic_name = filename
         else:
@@ -448,9 +487,11 @@ def editItem(item_name):
         return render_template('edititem.html', editItem=editItem, form=form)
 
 
-# delete an item
 @app.route('/catalog/<string:item_name>/delete', methods=['GET', 'POST'])
 def deleteItem(item_name):
+    """
+    delete an item
+    """
     if 'username' not in login_session:
         return redirect('/login')
 
