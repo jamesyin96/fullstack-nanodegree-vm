@@ -21,6 +21,7 @@ import os
 from werkzeug import secure_filename
 from flask.ext.seasurf import SeaSurf
 from dicttoxml import dicttoxml
+from functools import wraps
 
 
 app = Flask(__name__)
@@ -404,14 +405,26 @@ def showItemDetail(category_name, item_name):
         return render_template('itemdetail.html', item=item)
 
 
+def login_required(foo):
+    """
+    The definition of login_required decorator
+    """
+    @wraps(foo)
+    def wrap(*args, **kwargs):
+        if 'username' in login_session:
+            return foo(*args, **kwargs)
+        else:
+            flash("You need to login first")
+            return redirect(url_for("showLogin"))
+    return wrap
+
+
 @app.route('/catalog/newItem/', methods=['GET', 'POST'])
+@login_required
 def newItem():
     """
     add a new item
     """
-    if 'username' not in login_session:
-        return redirect('/login')
-
     if request.method == 'POST':
         file = request.files['upload']
         if file:
@@ -441,13 +454,11 @@ def newItem():
 
 
 @app.route('/catalog/<string:item_name>/edit', methods=['GET', 'POST'])
+@login_required
 def editItem(item_name):
     """
     edit an item
     """
-    if 'username' not in login_session:
-        return redirect('/login')
-
     editItem = session.query(Item).filter_by(name=item_name).first()
 
     if login_session['user_id'] != editItem.user_id:
@@ -488,13 +499,11 @@ def editItem(item_name):
 
 
 @app.route('/catalog/<string:item_name>/delete', methods=['GET', 'POST'])
+@login_required
 def deleteItem(item_name):
     """
     delete an item
     """
-    if 'username' not in login_session:
-        return redirect('/login')
-
     deleteItem = session.query(Item).filter_by(name=item_name).first()
 
     if login_session['user_id'] != deleteItem.user_id:
