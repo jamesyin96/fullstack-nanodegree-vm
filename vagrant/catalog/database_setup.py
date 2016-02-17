@@ -30,7 +30,7 @@ class Category(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(80), nullable=False)
-    items = relationship("Item", cascade="all, delete-orphan")
+    items = relationship("Item", back_populates="category", cascade="all, delete-orphan")
 
     @property
     def serialize(self):
@@ -50,7 +50,7 @@ class Item(Base):
     description = Column(Text, nullable=False)
     pic_name = Column(String(250))
     category_id = Column(Integer, ForeignKey('category.id'))
-    category = relationship(Category)
+    category = relationship("Category", back_populates="items")
     user_id = Column(Integer, ForeignKey('userdb.id'))
     user = relationship(User)
 

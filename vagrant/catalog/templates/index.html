@@ -5,7 +5,7 @@
       <div class="row jumbotron">
         <div class = 'flash'>
             {% with messages = get_flashed_messages() %}
-              {% if messages %}  
+              {% if messages %}
                 <ul>
                 {% for message in messages %}
                     <li> <strong> {{ message }} </strong> </li>
@@ -28,8 +28,8 @@
           <p><a class="btn-lg btn-success" href="{{url_for('newItem')}}" role="button">Add Item</a></p>
           <h3>Latest Items</h3>
           {% for item in latestitems %}
-          <a href="{{url_for('showItemDetail', category_name=item.category_name, item_name=item.name)}}">
-            <h4 class="list-group-item-heading">{{item.name}}({{item.category_name}}))</h4>
+          <a href="{{url_for('showItemDetail', category_name=item.category.name, item_name=item.name)}}">
+            <h4 class="list-group-item-heading">{{item.name}}({{item.category.name}})</h4>
           </a>
           {% endfor %}
         </div>

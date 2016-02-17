@@ -22,6 +22,8 @@ from werkzeug import secure_filename
 from flask.ext.seasurf import SeaSurf
 from dicttoxml import dicttoxml
 from functools import wraps
+from database_setup import DATABASE
+from sqlalchemy.engine.url import URL
 
 
 app = Flask(__name__)
@@ -35,7 +37,7 @@ CLIENT_ID = json.loads(open('g_client_secrets.json', 'r').
                        read())['web']['client_id']
 
 # Connect to Database and create database session
-engine = create_engine('sqlite:///catalogwithusers.db')
+engine = create_engine(URL(**DATABASE))
 Base.metadata.bind = engine
 
 DBSession = sessionmaker(bind=engine)
@@ -381,11 +383,12 @@ def showCategoryItems(category_name):
     """
     show all items belonging to one category
     """
-    categories = session.query(Category).all()
-    items = session.query(Item).filter_by(category_name=category_name).all()
+    categories = session.query(Category)
+    category = categories.filter_by(name=category_name).first()
+    items = session.query(Item).filter_by(category_id=category.id).all()
     return render_template('categoryitems.html',
                            category_name=category_name,
-                           categories=categories,
+                           categories=categories.all(),
                            items=items)
 
 
@@ -433,13 +436,13 @@ def newItem():
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             newItem = Item(name=request.form['name'],
                            description=request.form['description'],
-                           category_name=request.form['category'],
+                           category_id=request.form['category'],
                            user_id=login_session['user_id'],
                            pic_name=filename)
         else:
             newItem = Item(name=request.form['name'],
                            description=request.form['description'],
-                           category_name=request.form['category'],
+                           category_id=request.form['category'],
                            user_id=login_session['user_id'])
         session.add(newItem)
         session.commit()
@@ -448,7 +451,7 @@ def newItem():
     else:
         categories = session.query(Category).all()
         form = MyForm()
-        form.category.choices = [(g.name, g.name) for g in categories]
+        form.category.choices = [(g.id, g.name) for g in categories]
         # return render_template('newitem.html', categories=categories)
         return render_template('newitem.html', form=form)
 
@@ -472,7 +475,7 @@ def editItem(item_name):
         if file:
             editItem.name = request.form['name']
             editItem.description = request.form['description']
-            editItem.category_name = request.form['category']
+            editItem.category_id = request.form['category']
             if editItem.pic_name:
                 pic_path = './static/uploads/' + editItem.pic_name
                 os.remove(pic_path)
@@ -483,7 +486,7 @@ def editItem(item_name):
         else:
             editItem.name = request.form['name']
             editItem.description = request.form['description']
-            editItem.category_name = request.form['category']
+            editItem.category_id = request.form['category']
         session.add(editItem)
         session.commit()
         flash('Item %s Successfully Edited' % editItem.name)
@@ -491,10 +494,11 @@ def editItem(item_name):
     else:
         categories = session.query(Category).all()
         form = MyForm()
-        form.category.choices = [(g.name, g.name) for g in categories]
+        form.category.choices = [(g.id, g.name) for g in categories]
         form.name.data = editItem.name
-        form.description.data = editItem.description
-        form.category.data = editItem.category_name
+        form.description.default = editItem.description
+        form.category.default = editItem.category_id
+        form.process()
         return render_template('edititem.html', editItem=editItem, form=form)
 
 
