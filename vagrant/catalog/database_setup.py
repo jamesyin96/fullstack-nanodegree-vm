@@ -2,12 +2,22 @@ from sqlalchemy import Column, ForeignKey, Integer, String, Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy import create_engine
+from sqlalchemy.engine.url import URL
 
 Base = declarative_base()
 
+DATABASE = {
+    'drivername': 'postgres',
+    'host': 'localhost',
+    'port': '5432',
+    'username': 'vagrant',
+    'password': 'vagrant',
+    'database': 'catalog'
+}
+
 
 class User(Base):
-    __tablename__ = 'user'
+    __tablename__ = 'userdb'
 
     id = Column(Integer, primary_key=True)
     name = Column(String(80), nullable=False)
@@ -39,16 +49,16 @@ class Item(Base):
     name = Column(String(250), nullable=False)
     description = Column(Text, nullable=False)
     pic_name = Column(String(250))
-    category_name = Column(Integer, ForeignKey('category.name'))
+    category_id = Column(Integer, ForeignKey('category.id'))
     category = relationship(Category)
-    user_id = Column(Integer, ForeignKey('user.id'))
+    user_id = Column(Integer, ForeignKey('userdb.id'))
     user = relationship(User)
 
     @property
     def serialize(self):
         """Return object data in easily serializeable format"""
         return {
-               'category_name': self.category_name,
+               'category_name': self.category.name,
                'description': self.description,
                'title': self.name,
                'id': self.id,
@@ -56,5 +66,5 @@ class Item(Base):
         }
 
 
-engine = create_engine('sqlite:///catalogwithusers.db')
+engine = create_engine(URL(**DATABASE))
 Base.metadata.create_all(engine)
