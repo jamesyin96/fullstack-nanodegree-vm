@@ -61,7 +61,7 @@ def findARestaurant(mealType, location):
             photourl = 'http://bit.ly/1NvadKw'
         else:
             photo = photos[0]['items'][0]
-            photourl = photo['prefix'] + photo['suffix']
+            photourl = photo['prefix'] + '300x300' + photo['suffix']
 
     # 7. Return a dictionary containing the restaurant name, address, image url
     restaurantDict = {'Name': restaurantName,
