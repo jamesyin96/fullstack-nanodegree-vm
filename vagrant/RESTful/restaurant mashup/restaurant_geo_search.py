@@ -63,13 +63,14 @@ def findARestaurant(mealType, location):
             photo = photos[0]['items'][0]
             photourl = photo['prefix'] + '300x300' + photo['suffix']
 
-    # 7. Return a dictionary containing the restaurant name, address, image url
-    restaurantDict = {'Name': restaurantName,
-                      'Address': restaurantAddress,
-                      'Photo URL': photourl
-                      }
+        # 7. Return a dictionary containing the restaurant name, address, image url
+        restaurantDict = {'name': restaurantName,
+                          'address': restaurantAddress,
+                          'image': photourl
+                          }
+        return restaurantDict
 
-    print restaurantDict
+    return 'No Restaurants Found'
 
 if __name__ == '__main__':
     findARestaurant("Pizza", "Tokyo, Japan")
